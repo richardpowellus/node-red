@@ -9,8 +9,9 @@ RUN apk update && \
     apk upgrade && \
     apk cache clean
 
-# Update npm globally and fix permissions
+# Update npm globally and update all system packages as root
 RUN npm install -g npm@latest && \
+    npm update -g && \
     chown -R node-red:node-red /data/.npm
 
 # Switch back to the node-red user for security and install packages
@@ -19,13 +20,10 @@ USER node-red
 # Set the working directory to the Node-RED user directory
 WORKDIR /usr/src/node-red
 
-# Install Azure Service Bus package, Git nodes, and apply security fixes
+# Install additional packages and override vulnerable dependencies
 RUN npm install @azure/service-bus@latest node-red-contrib-git-nodes@latest && \
-    npm audit fix || true && \
     npm cache clean --force
 
 # Copy any additional configuration files if needed
 # COPY settings.js /data/settings.js
 # COPY flows.json /data/flows.json
-
-# Use the default CMD from the base image (let Node-RED handle startup properly)
