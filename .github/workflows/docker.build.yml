@@ -17,6 +17,12 @@ jobs:
         id: checkout_code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        id: setup_buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
       - name: Login to Docker Hub
         id: login_docker_hub
         uses: docker/login-action@v3
@@ -27,18 +33,20 @@ jobs:
       - name: Echo GitHub SHA
         run: echo $GITHUB_SHA
 
-      - name: Build Docker image
-        id: build_image
-        run: |
-          docker build . -t ${{ secrets.DOCKER_HUB_USER_NAME }}/node-red-custom:latest \
-                          -t ${{ secrets.DOCKER_HUB_USER_NAME }}/node-red-custom:${{ github.sha }} \
-                          --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
-                          --label "org.opencontainers.image.revision=${{ github.sha }}" \
-                          --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-      - name: Push Docker image
-        run: |
-          docker push ${{ secrets.DOCKER_HUB_USER_NAME }}/node-red-custom:latest
-          docker push ${{ secrets.DOCKER_HUB_USER_NAME }}/node-red-custom:${{ github.sha }}
+      - name: Build and push multi-platform Docker image
+        id: build_and_push_image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USER_NAME }}/node-red-custom:latest
+            ${{ secrets.DOCKER_HUB_USER_NAME }}/node-red-custom:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.build_and_push_image.outputs.created }}
 
       - name: Logout from Docker Hub
         run: docker logout
