@@ -23,8 +23,5 @@ RUN npm install @azure/service-bus@latest
 # COPY settings.js /data/settings.js
 # COPY flows.json /data/flows.json
 
-# Expose the Node-RED port
-EXPOSE 1880
-
 # The default CMD from the base image will start Node-RED
 # CMD ["npm", "start", "--cache", "/data/.npm", "--", "--userDir", "/data"]
