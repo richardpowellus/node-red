@@ -9,11 +9,19 @@ RUN apk update && \
     apk upgrade && \
     apk cache clean
 
-# Fix potential line ending issues and ensure entrypoint is executable
-RUN if [ -f /usr/src/node-red/entrypoint.sh ]; then \
-        sed -i 's/\r$//' /usr/src/node-red/entrypoint.sh && \
-        chmod +x /usr/src/node-red/entrypoint.sh; \
-    fi
+# Install dos2unix to handle line ending conversion more reliably
+RUN apk add --no-cache dos2unix
+
+# Fix multiple potential issues with entrypoint scripts
+RUN find /usr/src/node-red -name "*.sh" -type f -exec dos2unix {} \; && \
+    find /usr/src/node-red -name "*.sh" -type f -exec chmod +x {} \; && \
+    find /data -name "*.sh" -type f -exec dos2unix {} \; 2>/dev/null || true && \
+    find /data -name "*.sh" -type f -exec chmod +x {} \; 2>/dev/null || true
+
+# Alternative: Create our own entrypoint to bypass potential issues
+RUN echo '#!/bin/sh' > /usr/src/node-red/custom-entrypoint.sh && \
+    echo 'exec node $@' >> /usr/src/node-red/custom-entrypoint.sh && \
+    chmod +x /usr/src/node-red/custom-entrypoint.sh
 
 # Switch back to the node-red user for security
 USER node-red
@@ -28,5 +36,5 @@ RUN npm install @azure/service-bus@latest
 # COPY settings.js /data/settings.js
 # COPY flows.json /data/flows.json
 
-# The default CMD from the base image will start Node-RED
-# CMD ["npm", "start", "--cache", "/data/.npm", "--", "--userDir", "/data"]
+# Use a reliable startup command that bypasses potential entrypoint issues
+CMD ["node", "/usr/src/node-red/node_modules/node-red/red.js", "--userDir", "/data"]
