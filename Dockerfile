@@ -1,5 +1,5 @@
-# Use the official Node-RED Docker image as base with specific version
-FROM nodered/node-red:3.1.0-18
+# Use the official Node-RED Docker image with Node.js 22
+FROM nodered/node-red:latest-22
 
 # Switch to root user to install packages
 USER root
