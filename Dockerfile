@@ -19,8 +19,8 @@ USER node-red
 # Set the working directory to the Node-RED user directory
 WORKDIR /usr/src/node-red
 
-# Install Azure Service Bus package and apply security fixes
-RUN npm install @azure/service-bus@latest && \
+# Install Azure Service Bus package, Git nodes, and apply security fixes
+RUN npm install @azure/service-bus@latest node-red-contrib-git-nodes@latest && \
     npm audit fix || true && \
     npm cache clean --force
 
