@@ -4,11 +4,10 @@ FROM nodered/node-red:latest
 # Switch to root user to perform system updates
 USER root
 
-# Update the package lists and upgrade all packages
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Update the package lists and upgrade all packages (Alpine Linux uses apk)
+RUN apk update && \
+    apk upgrade && \
+    apk cache clean
 
 # Switch back to the node-red user for security
 USER node-red
