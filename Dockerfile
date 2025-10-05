@@ -1,5 +1,5 @@
-# Use the official Node-RED Docker image as base
-FROM nodered/node-red:latest
+# Use the official Node-RED Docker image as base with specific version
+FROM nodered/node-red:3.1.0-18
 
 # Switch to root user to perform system updates
 USER root
@@ -8,6 +8,12 @@ USER root
 RUN apk update && \
     apk upgrade && \
     apk cache clean
+
+# Fix potential line ending issues and ensure entrypoint is executable
+RUN if [ -f /usr/src/node-red/entrypoint.sh ]; then \
+        sed -i 's/\r$//' /usr/src/node-red/entrypoint.sh && \
+        chmod +x /usr/src/node-red/entrypoint.sh; \
+    fi
 
 # Switch back to the node-red user for security
 USER node-red
